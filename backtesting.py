@@ -2,6 +2,8 @@ import os
 import json
 import pandas as pd
 from datetime import datetime, time
+import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 
 
 DATA_DIR = "./back_data"
@@ -9,7 +11,7 @@ DATA_DIR = "./back_data"
 SYMBOL = "JIOFIN-EQ"
 
 START_DATE = datetime(2026, 1, 1)
-END_DATE = datetime(2026, 5, 13)
+END_DATE = datetime(2026, 6, 2)
 
 TARGET_RR = 2
 
@@ -117,6 +119,14 @@ def run_backtest(
     profitable_days = 0
     loss_days = 0
     flat_days = 0
+
+    equity = CAPITAL
+
+    equity_curve = [
+        equity
+    ]
+
+    equity_dates = [start_date]
 
 
     for date in pd.date_range(
@@ -245,7 +255,7 @@ def run_backtest(
 
                     total_risk = (
 
-                        CAPITAL *
+                        equity *
 
                         (
                             RISK_PERCENT / 100
@@ -263,7 +273,7 @@ def run_backtest(
 
                     qty_capital = (
 
-                        CAPITAL /
+                        equity /
 
                         entry
 
@@ -334,7 +344,7 @@ def run_backtest(
 
                     total_risk = (
 
-                        CAPITAL *
+                        equity *
 
                         (
                             RISK_PERCENT / 100
@@ -352,7 +362,7 @@ def run_backtest(
 
                     qty_capital = (
 
-                        CAPITAL /
+                        equity /
 
                         entry
 
@@ -506,6 +516,14 @@ def run_backtest(
 
                     day_pnl += pnl
 
+                    equity += pnl
+
+                    equity_curve.append(
+                        equity
+                    )
+                    equity_dates.append(
+                        date
+                    )
                     total_trades += 1
 
 
@@ -595,6 +613,10 @@ def run_backtest(
             "%"
         )
 
+    print(
+        "Final Equity:",
+        round(equity, 2)
+    )
 
     print(
         "PnL:",
@@ -622,6 +644,38 @@ def run_backtest(
     print(
         "Flat:",
         flat_days
+    )
+
+    plt.figure(figsize=(12,6))
+
+    plt.plot(
+        equity_dates,
+        equity_curve
+    )
+
+    plt.title("Equity Curve")
+
+    plt.xlabel("Date")
+
+    plt.ylabel("Account Value")
+
+    plt.grid(True)
+
+    plt.gca().xaxis.set_major_formatter(
+        mdates.DateFormatter("%b")
+    )
+
+    plt.gca().xaxis.set_major_locator(
+        mdates.MonthLocator()
+    )
+
+    plt.xticks(rotation=45)
+
+    plt.tight_layout()
+
+    plt.savefig(
+        "equity_curve.png",
+        dpi=300
     )
 
 
